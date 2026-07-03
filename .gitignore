@@ -1,0 +1,102 @@
+# ============================================================
+# .gitignore — IndoBERT Sentiment Analysis Project
+# ============================================================
+
+# ── Python Cache ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual Environment ───────────────────────────────────────
+.env
+.venv
+env/
+venv/
+ENV/
+.conda/
+*.egg-info/
+dist/
+build/
+
+# ── Jupyter Notebook Checkpoints ─────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Model Weights (terlalu besar untuk GitHub, ~2.4GB total) ──
+# Exclude semua file safetensors & pytorch bin
+model/**/*.safetensors
+model/**/*.bin
+model/**/*.pt
+model/**/*.pth
+
+# Khusus: folder fine-tuned hasil training (bisa retrain ulang)
+model/indobert_tokopedia_baseline/
+model/indobert_tokopedia_proposed/
+model/indobert_shopee_baseline/
+model/indobert_shopee_proposed/
+
+# Khusus: base pre-trained model (download dari HuggingFace)
+model/indobert_raw/
+
+# ── Data (raw & processed, bisa di-regenerate) ───────────────
+# Raw CSV scraping & Kaggle (sensitif + besar)
+data/raw/*.csv
+data/raw/merged/
+
+# Processed / experiment splits (generated dari run_preprocessing.py)
+data/processed/
+
+# Tapi tetap track folder struktur (via .gitkeep)
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!model/.gitkeep
+
+# ── Logs Runtime ─────────────────────────────────────────────
+logs/*.log
+
+# Tapi tetap track folder
+!logs/.gitkeep
+
+# ── OS & Editor ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Conda / Pip ───────────────────────────────────────────────
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── Pytest / Coverage ─────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Temporary & Patch Files ───────────────────────────────────
+*.orig
+*.patch
+*.bak
+*.tmp
+
+# ── Kaggle Credentials ────────────────────────────────────────
+kaggle.json
+.kaggle/
+
+# ── FastAPI / Uvicorn ─────────────────────────────────────────
+*.pid
+
+# ── Docker ───────────────────────────────────────────────────
+.dockerignore
+docker-compose.override.yml
+

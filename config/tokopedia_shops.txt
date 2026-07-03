@@ -1,0 +1,30 @@
+# Daftar URL halaman review toko Tokopedia
+# Format: satu URL per baris
+# URL harus mengarah ke halaman /review toko (Telah diuji valid - HTTP 200)
+
+# Elektronik 
+https://www.tokopedia.com/logitech-g/review
+https://www.tokopedia.com/anker-indonesia/review
+
+# Fashion
+https://www.tokopedia.com/aerostreet/review
+https://www.tokopedia.com/3second/review
+https://www.tokopedia.com/berrybenka/review
+
+# Skincare & Kecantikan
+https://www.tokopedia.com/garniermen/review
+https://www.tokopedia.com/avoskin/review
+https://www.tokopedia.com/npure/review
+https://www.tokopedia.com/maybelline/review
+
+# Makanan & Minuman
+https://www.tokopedia.com/walls/review
+https://www.tokopedia.com/nescafe/review
+https://www.tokopedia.com/cimory/review
+
+# Kebutuhan Harian / FMCG
+https://www.tokopedia.com/wings/review
+https://www.tokopedia.com/pao/review
+
+# Perlengkapan Rumah
+https://www.tokopedia.com/cosmosofficial/review
