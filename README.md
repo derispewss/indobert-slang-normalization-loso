@@ -198,7 +198,7 @@ machine-learning-nlp/
 ### Langkah 1 — Clone Repository
 
 ```bash
-git clone https://github.com/derisfirmansyah/machine-learning-nlp.git
+git clone https://github.com/derispewss/indobert-slang-normalization-loso.git
 cd machine-learning-nlp
 ```
 
