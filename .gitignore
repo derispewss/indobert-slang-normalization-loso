@@ -45,6 +45,8 @@ model/indobert_raw/
 # Raw CSV scraping & Kaggle (sensitif + besar)
 data/raw/*.csv
 data/raw/merged/
+!data/raw/merged/.gitkeep
+
 
 # Processed / experiment splits (generated dari run_preprocessing.py)
 data/processed/
@@ -53,6 +55,7 @@ data/processed/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !model/.gitkeep
+
 
 # ── Logs Runtime ─────────────────────────────────────────────
 logs/*.log
