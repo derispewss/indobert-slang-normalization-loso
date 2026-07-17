@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from config.settings import MIN_TEXT_LENGTH, MIN_TOKEN_COUNT, NEGATION_WORDS
+from config.settings import MIN_TEXT_LENGTH, MIN_TOKEN_COUNT, NEGATION_WORDS, INTENSIFIER_WORDS
 from src.preprocessing.normalizer import (
     normalize_punctuation,
     normalize_repeated_chars,
@@ -35,7 +35,11 @@ def _get_stop_word_remover():
             return None
         factory  = StopWordRemoverFactory()
         stopwords = set(factory.get_stop_words())
+        
+        # Mengecualikan kata negasi dan kata penguat dari penghapusan Sastrawi
         stopwords -= NEGATION_WORDS
+        stopwords -= INTENSIFIER_WORDS
+        
         _stop_word_remover = ArrayOfStopWordsRemover(list(stopwords))
     return _stop_word_remover
 

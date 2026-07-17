@@ -12,11 +12,13 @@ CONFIG_DIR = ROOT_DIR / "config"
 DATA_DIR   = ROOT_DIR / "data"
 RAW_DIR    = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
-MODEL_DIR  = ROOT_DIR / "model"
+EXTERNAL_DIR  = DATA_DIR / "external"
+MODEL_DIR  = ROOT_DIR / "models"     # <-- Telah diubah dari "model" ke "models"
 LOG_DIR    = ROOT_DIR / "logs"
+REPORTS_DIR = ROOT_DIR / "reports"
 
 # Buat direktori jika belum ada
-for d in [RAW_DIR, PROCESSED_DIR, MODEL_DIR, LOG_DIR]:
+for d in [RAW_DIR, PROCESSED_DIR, EXTERNAL_DIR, MODEL_DIR, LOG_DIR, REPORTS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # ── File paths ────────────────────────────────────────────────
@@ -65,35 +67,70 @@ TOKOPEDIA_SLEEP_BETWEEN_PAGES = 0.5  # detik
 LABEL2ID = {"Negatif": 0, "Netral": 1, "Positif": 2}
 ID2LABEL = {0: "Negatif", 1: "Netral", 2: "Positif"}
 
-def rating_to_label(rating: int) -> str:
+def rating_to_label(rating: int, text: str = "") -> str:
+    """
+    Mengubah rating bintang menjadi label sentimen (Negatif, Netral, Positif).
+    Dilengkapi text-based fallback untuk mengatasi bias anomali pengguna e-commerce 
+    (misal: memberikan bintang 3, 4, atau 5, tetapi teks ulasannya penuh kekecewaan).
+    """
+    text_lower = text.lower() if isinstance(text, str) else ""
+    
+    # Kumpulan kata kunci (keywords) yang secara inheren mengindikasikan kekecewaan berat
+    # Kata-kata ini sangat jarang dipakai dalam konteks pujian atau netral.
+    strong_negative_keywords = [
+        "kecewa", "nyesel", "menyesal", "rugi", "rusak", "cacat", "hancur", "pecah", 
+        "jelek", "buruk", "parah", "bohong", "penipu", "nipu", "palsu", "kw", 
+        "lambat", "lama banget", "lelet", "gak sesuai", "tidak sesuai", "kurang",
+        "mati", "bocor", "basi", "bau", "sobek", "patah", "penyok", "hilang",
+        "jangan beli", "kapok", "sampah", "buang", "zonk", "males"
+    ]
+    
+    # 1. Pastikan Bintang 1 dan 2 MUTLAK Negatif (apapun isi teksnya)
     if rating in (1, 2):
         return "Negatif"
+        
+    # 2. Text-Based Fallback untuk anomali Bintang 3, 4, 5
+    # Jika teks mengandung salah satu kata negatif kuat, paksa jadi "Negatif"
+    for keyword in strong_negative_keywords:
+        if keyword in text_lower:
+            return "Negatif"
+            
+    # 3. Jika aman dari kata negatif kuat, kembalikan ke logika rating bawaan
     if rating == 3:
         return "Netral"
+        
     return "Positif"
 
 # ── Preprocessing ─────────────────────────────────────────────
 MIN_TEXT_LENGTH  = 5    # karakter minimum sebelum cleaning
 MIN_TOKEN_COUNT  = 3    # token minimum setelah cleaning
+
 # Kata negasi yang TIDAK boleh dihapus saat stopword removal
 NEGATION_WORDS = {
     "tidak", "bukan", "belum", "jangan", "kurang",
     "tanpa", "tak", "tiada", "no", "anti",
 }
 
+# Kata intensifier (penguat) yang TIDAK boleh dihapus karena membedakan sentimen
+INTENSIFIER_WORDS = {
+    "sangat", "sekali", "banget", "bgt", "amat", "super", 
+    "terlalu", "paling", "makin", "makin"
+}
+
 # ── Training: IndoBERT ────────────────────────────────────────
 INDOBERT_MODEL_NAME = "indobenchmark/indobert-base-p2"
 INDOBERT_MAX_LENGTH = 128
 INDOBERT_BATCH_SIZE = 8        # aman untuk RTX 3050 4GB
-INDOBERT_LEARNING_RATE = 2e-5
-INDOBERT_NUM_EPOCHS  = 5
+INDOBERT_LEARNING_RATE = 2e-5  # Digunakan sebagai fallback jika LLRD tidak jalan
+INDOBERT_NUM_EPOCHS  = 8       # Dinaikkan dari 5 ke 8 agar data Shopee bisa konvergen
 INDOBERT_WARMUP_RATIO = 0.1
 INDOBERT_WEIGHT_DECAY = 0.01
-INDOBERT_DROPOUT     = 0.1
-INDOBERT_EARLY_STOP_PATIENCE = 2
+INDOBERT_DROPOUT     = 0.2     # Dinaikkan dari 0.1 ke 0.2 untuk regularisasi ekstra (overfitting)
+INDOBERT_EARLY_STOP_PATIENCE = 3 # Dinaikkan dari 2 ke 3 agar model bisa keluar local optima
 INDOBERT_GRADIENT_CLIP = 1.0
 RANDOM_STATE = 42
-TEST_SIZE    = 0.2
+TEST_SIZE    = 0.15            # Split 70/15/15 (Train/Val/Test)
+VAL_SIZE     = 0.15
 
 # ── Training: LSTM ────────────────────────────────────────────
 LSTM_EMBEDDING_DIM = 256

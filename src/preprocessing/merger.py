@@ -107,11 +107,20 @@ def filter_empty_and_noise(df: pd.DataFrame, mode: str) -> pd.DataFrame:
     logger.info(f"  Filter <{MIN_TEXT_LENGTH} char: {before - len(df)} baris dihapus")
 
     if mode == "multi":
-        # Denoising Netral: rating=3 dengan teks < 30 char dihapus (meaningless neutral)
-        cond = (df["rating"] == 3) & (df["review_text"].str.strip().str.len() < 30)
+        # Denoising Netral: rating=3 dengan teks < 50 char dihapus (meaningless neutral)
+        # Serta membuang ulasan netral yang isinya hanya kata-kata filler pendek
+        meaningless_keywords = ["oke", "ok", "biasa", "lumayan", "bagus", "mantap", "sip", "standar", "sesuai"]
+        
+        # Kondisi 1: Rating 3 dan karakter sangat pendek (<50)
+        cond_length = (df["rating"] == 3) & (df["review_text"].str.strip().str.len() < 50)
+        
+        # Kondisi 2: Rating 3 dan teksnya KESELURUHAN (setelah di-lower dan strip) hanya ada di daftar meaningless
+        cond_meaningless = (df["rating"] == 3) & (df["review_text"].str.lower().str.strip().isin(meaningless_keywords))
+        
+        cond = cond_length | cond_meaningless
         n_neutral_noise = cond.sum()
         df = df[~cond]
-        logger.info(f"  Denoising Netral (<30 char): {n_neutral_noise} baris dihapus")
+        logger.info(f"  Denoising Netral (<50 char & meaningless): {n_neutral_noise} baris dihapus")
 
     return df
 
@@ -124,13 +133,17 @@ def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def balance_classes_downsample(df: pd.DataFrame) -> pd.DataFrame:
-    rating_counts = df["rating"].value_counts()
-    target = int(rating_counts.median())
-    logger.info(f"  Downsampling: target {target} baris per kelas rating")
+    # Pastikan label sudah dibuat SEBELUM melakukan downsampling
+    if "label" not in df.columns:
+        df = auto_label(df)
+        
+    label_counts = df["label"].value_counts()
+    target = int(label_counts.median())
+    logger.info(f"  Downsampling: target {target} baris per kelas sentimen (Negatif/Netral/Positif)")
 
     chunks = []
-    for rating_val in sorted(df["rating"].unique()):
-        subset = df[df["rating"] == rating_val]
+    for label_val in sorted(df["label"].unique()):
+        subset = df[df["label"] == label_val]
         if len(subset) > target:
             subset = subset.sample(n=target, random_state=42)
         chunks.append(subset)
@@ -141,7 +154,8 @@ def balance_classes_downsample(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def auto_label(df: pd.DataFrame) -> pd.DataFrame:
-    df["label"] = df["rating"].apply(rating_to_label)
+    # Ubah apply untuk menerima dua kolom: rating dan review_text
+    df["label"] = df.apply(lambda row: rating_to_label(row["rating"], row["review_text"]), axis=1)
     return df
 
 
@@ -191,11 +205,13 @@ def main():
 
     df = filter_empty_and_noise(df, args.mode)
     df = deduplicate(df)
+    
+    # Label harus dibuat SEBELUM downsampling agar balancing berdasarkan label, bukan rating
+    df = auto_label(df)
 
     if args.mode == "multi":
         df = balance_classes_downsample(df)
 
-    df = auto_label(df)
     print_stats(df)
 
     output_path = get_output_path(args.mode)

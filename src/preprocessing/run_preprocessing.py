@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from config.settings import RANDOM_STATE, TEST_SIZE
+from config.settings import RANDOM_STATE, TEST_SIZE, VAL_SIZE
 from src.preprocessing.cleaner import clean_text_pipeline
 from src.scraping.scraper_utils import setup_logger
 
@@ -57,21 +57,34 @@ def process_dataset(df: pd.DataFrame, platform_name: str, use_normalization: boo
     output_cols = ["review_text_clean", "review_text", "rating", "sentiment_label", "source_platform"]
     df_platform = df_platform[output_cols]
 
-    # Split 80/20 Stratified
-    train_df, test_df = train_test_split(
+    # Split 70% Train, 15% Val, 15% Test Stratified
+    # Pertama pisahkan Train (70%) dan Sisa (30%)
+    train_df, temp_df = train_test_split(
         df_platform,
-        test_size=TEST_SIZE,
+        test_size=(TEST_SIZE + VAL_SIZE),
         random_state=RANDOM_STATE,
         stratify=df_platform["sentiment_label"],
     )
     
+    # Lalu pisahkan sisa (30%) menjadi Val (15%) dan Test (15%)
+    val_ratio = VAL_SIZE / (TEST_SIZE + VAL_SIZE)
+    val_df, test_df = train_test_split(
+        temp_df,
+        test_size=val_ratio,
+        random_state=RANDOM_STATE,
+        stratify=temp_df["sentiment_label"],
+    )
+    
     train_file = output_dir / f"train_{platform_name}_{condition}.csv"
+    val_file   = output_dir / f"val_{platform_name}_{condition}.csv"
     test_file  = output_dir / f"test_{platform_name}_{condition}.csv"
     
     train_df.to_csv(train_file, index=False, encoding="utf-8-sig")
+    val_df.to_csv(val_file, index=False, encoding="utf-8-sig")
     test_df.to_csv(test_file, index=False, encoding="utf-8-sig")
     
     logger.info(f"Train set: {len(train_df)} baris → {train_file.name}")
+    logger.info(f"Val set  : {len(val_df)} baris → {val_file.name}")
     logger.info(f"Test set : {len(test_df)} baris → {test_file.name}")
 
 def run():

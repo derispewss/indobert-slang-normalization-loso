@@ -27,19 +27,19 @@ build/
 
 # ── Model Weights (terlalu besar untuk GitHub, ~2.4GB total) ──
 # Exclude semua file safetensors & pytorch bin
-model/**/*.safetensors
-model/**/*.bin
-model/**/*.pt
-model/**/*.pth
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.pt
+models/**/*.pth
 
 # Khusus: folder fine-tuned hasil training (bisa retrain ulang)
-model/indobert_tokopedia_baseline/
-model/indobert_tokopedia_proposed/
-model/indobert_shopee_baseline/
-model/indobert_shopee_proposed/
+models/indobert_tokopedia_baseline/
+models/indobert_tokopedia_proposed/
+models/indobert_shopee_baseline/
+models/indobert_shopee_proposed/
 
 # Khusus: base pre-trained model (download dari HuggingFace)
-model/indobert_raw/
+models/indobert_raw/
 
 # ── Data (raw & processed, bisa di-regenerate) ───────────────
 # Raw CSV scraping & Kaggle (sensitif + besar)
@@ -54,7 +54,7 @@ data/processed/
 # Tapi tetap track folder struktur (via .gitkeep)
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!model/.gitkeep
+!models/.gitkeep
 
 
 # ── Logs Runtime ─────────────────────────────────────────────

@@ -121,7 +121,7 @@ def train_single_scenario(platform: str, condition: str, device: torch.device):
     base_dir = ROOT / "data" / "processed" / "experiment_splits"
     train_csv = base_dir / f"train_{platform}_{condition}.csv"
     test_csv  = base_dir / f"test_{platform}_{condition}.csv"
-    final_model_dir = ROOT / "model" / f"indobert_{platform}_{condition}"
+    final_model_dir = ROOT / "models" / f"indobert_{platform}_{condition}"
 
     if not train_csv.exists() or not test_csv.exists():
         logger.error(f"Dataset tidak ditemukan di: {train_csv.parent}")
@@ -133,7 +133,7 @@ def train_single_scenario(platform: str, condition: str, device: torch.device):
     logger.info(f"Dataset | Train: {len(train_texts)} sampel | Val: {len(test_texts)} sampel")
 
     # Load Tokeizer & Model
-    LOCAL_MODEL_DIR = str(ROOT / "model" / "indobert_raw")
+    LOCAL_MODEL_DIR = str(ROOT / "models" / "indobert_raw")
     tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_DIR, local_files_only=True)
     
     train_dataset = ReviewDataset(train_texts, train_labels, tokenizer, INDOBERT_MAX_LENGTH)
@@ -157,7 +157,29 @@ def train_single_scenario(platform: str, condition: str, device: torch.device):
     class_weights = compute_class_weights(train_labels).to(device)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    optimizer = AdamW(model.parameters(), lr=INDOBERT_LEARNING_RATE, weight_decay=INDOBERT_WEIGHT_DECAY)
+    # Pisahkan parameter untuk LLRD (Layer-wise Learning Rate Decay)
+    no_decay = ['bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        # 1. Classifier Head (LR paling besar)
+        {'params': [p for n, p in model.classifier.named_parameters() if not any(nd in n for nd in no_decay)],
+         'weight_decay': INDOBERT_WEIGHT_DECAY, 'lr': 3e-5},
+        {'params': [p for n, p in model.classifier.named_parameters() if any(nd in n for nd in no_decay)],
+         'weight_decay': 0.0, 'lr': 3e-5},
+        
+        # 2. Transformer Layers (LR menengah)
+        {'params': [p for n, p in model.bert.encoder.layer.named_parameters() if not any(nd in n for nd in no_decay)],
+         'weight_decay': INDOBERT_WEIGHT_DECAY, 'lr': 1e-5},
+        {'params': [p for n, p in model.bert.encoder.layer.named_parameters() if any(nd in n for nd in no_decay)],
+         'weight_decay': 0.0, 'lr': 1e-5},
+         
+        # 3. Embeddings (LR paling kecil)
+        {'params': [p for n, p in model.bert.embeddings.named_parameters() if not any(nd in n for nd in no_decay)],
+         'weight_decay': INDOBERT_WEIGHT_DECAY, 'lr': 5e-6},
+        {'params': [p for n, p in model.bert.embeddings.named_parameters() if any(nd in n for nd in no_decay)],
+         'weight_decay': 0.0, 'lr': 5e-6}
+    ]
+
+    optimizer = AdamW(optimizer_grouped_parameters)
 
     total_steps   = len(train_loader) * INDOBERT_NUM_EPOCHS
     warmup_steps  = int(INDOBERT_WARMUP_RATIO * total_steps)

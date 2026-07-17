@@ -42,7 +42,7 @@ except ImportError as e:
     sys.exit(1)
 
 # ── Konstanta Visual ──────────────────────────────────────────
-RESULTS_DIR = ROOT / "results"
+RESULTS_DIR = ROOT / "reports" / "figures"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 CLASS_NAMES  = ["Negatif", "Netral", "Positif"]
@@ -68,7 +68,7 @@ def get_test_path(platform: str, condition: str) -> Path:
     return ROOT / "data" / "processed" / "experiment_splits" / f"test_{platform}_{condition}.csv"
 
 def get_model_path(platform: str, condition: str) -> Path:
-    return ROOT / "model" / f"indobert_{platform}_{condition}"
+    return ROOT / "models" / f"indobert_{platform}_{condition}"
 
 def load_test_data(csv_path: Path) -> tuple[list[str], list[int]]:
     df = pd.read_csv(csv_path, encoding="utf-8-sig")
