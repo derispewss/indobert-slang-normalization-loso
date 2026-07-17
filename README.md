@@ -90,22 +90,22 @@ EVALUASI LOSO (8 kombinasi pengujian)
 | Shopee | Tokopedia | **Proposed** | **0.5931** | **0.6635** | -6.21% |
 
 ### 1. F1-Macro Bar Chart: Baseline vs Proposed
-![F1 Comparison](results/02_f1_comparison_baseline_vs_proposed.png)
+![F1 Comparison](reports/figures/02_f1_comparison_baseline_vs_proposed.png)
 
 Grafik di atas membandingkan performa F1-Macro dari 4 model yang dievaluasi dalam 8 skenario (In-Domain dan Cross-Platform). Normalisasi slang secara konsisten meningkatkan F1-Macro, *kecuali* pada skenario cross-platform `Tokopedia → Shopee` (anomali).
 
 ### 2. Domain Shift Heatmap (F1-Macro Matrix)
-![Domain Shift Heatmap](results/03_domain_shift_heatmap.png)
+![Domain Shift Heatmap](reports/figures/03_domain_shift_heatmap.png)
 
 Heatmap ini menunjukkan penurunan drastis performa ketika model diuji silang (warna merah). Penurunan paling tajam terjadi saat model Tokopedia dipaksa mengevaluasi data Shopee (drop >10%).
 
 ### 3. Confusion Matrix (In-Domain)
-![Confusion Matrix](results/01_confusion_matrix_indomain.png)
+![Confusion Matrix](reports/figures/01_confusion_matrix_indomain.png)
 
 Secara umum, semua model kesulitan dalam memprediksi kelas **Netral** (Recall hanya ~42-57%). Hal ini mengonfirmasi kelemahan pelabelan otomatis berbasis rating bintang (Bintang 3 seringkali memuat teks negatif/positif tersembunyi).
 
 ### 4. Profil Metrik Model (Radar Chart)
-![Radar Chart](results/05_radar_model_profile.png)
+![Radar Chart](reports/figures/05_radar_model_profile.png)
 
 ### Temuan Kunci
 
