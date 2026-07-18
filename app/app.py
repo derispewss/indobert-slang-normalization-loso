@@ -22,10 +22,28 @@ st.set_page_config(
 )
 
 # ── Pengecekan Ketersediaan Model ────────────────────────────
-MODEL_DIR = ROOT / "models"
+from huggingface_hub import list_repo_files
 
 def check_model_exists(platform: str, condition: str) -> bool:
-    return (MODEL_DIR / f"indobert_{platform}_{condition}").exists()
+    """
+    Cek apakah model ada di folder lokal 'models/' 
+    ATAU ada di repositori Hugging Face 'derispewsss/...'.
+    """
+    model_name = f"indobert_{platform}_{condition}"
+    
+    # 1. Cek lokal
+    local_path = ROOT / "models" / model_name
+    if local_path.exists():
+        return True
+        
+    # 2. Cek Hugging Face (untuk Streamlit Cloud)
+    hf_repo_id = f"derispewsss/{model_name}"
+    try:
+        # Jika berhasil menarik daftar file, berarti repo eksis
+        files = list_repo_files(hf_repo_id)
+        return len(files) > 0
+    except:
+        return False
 
 # ── Helper Load Model (cached) ────────────────────────────────
 @st.cache_resource
@@ -97,9 +115,9 @@ st.divider()
 
 if not model_exists:
     st.warning(
-        f"⚠️ **Perhatian**: File bobot untuk eksperimen model **{active_platform.title()}** dengan kondisi **{condition_str.title()}** "
-        f"belum ditemukan di direktori `models/`.  \n\n"
-        f"**Solusi**: Silakan jalankan skrip training terlebih dahulu melalui terminal:\n"
+        f"⚠️ **Perhatian**: Model **{active_platform.title()}** ({condition_str.title()}) "
+        f"tidak ditemukan di folder lokal `models/` dan gagal ditarik dari Hugging Face Hub.  \n\n"
+        f"**Solusi Lokal**: Silakan jalankan skrip training:\n"
         f"`python src/modeling/train_indobert.py --platform {active_platform} --norm {condition_str}`"
     )
     st.stop()
