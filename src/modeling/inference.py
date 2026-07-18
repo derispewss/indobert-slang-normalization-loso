@@ -48,20 +48,33 @@ def load_model(target_platform: str = "tokopedia", use_normalization: bool = Tru
     logger.info(f"🔄 Switching Model ke: {model_folder.upper()} ...")
 
     model_path = MODEL_DIR / model_folder
-    if not model_path.exists():
-        msg = f"Model tidak ditemukan di {model_path}. Jalankan train_indobert.py untuk skenario ini."
+    
+    _device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    try:
+        if model_path.exists():
+            # Load dari lokal
+            logger.info(f"Loading local model dari {model_path}")
+            _tokenizer = AutoTokenizer.from_pretrained(str(model_path / "tokenizer"))
+            _model     = AutoModelForSequenceClassification.from_pretrained(str(model_path))
+        else:
+            # Load dari Hugging Face Hub (untuk Streamlit Cloud)
+            hf_repo_id = f"derispewsss/{model_folder}"
+            logger.info(f"Local model tidak ditemukan. Mengunduh dari Hugging Face: {hf_repo_id}")
+            _tokenizer = AutoTokenizer.from_pretrained(hf_repo_id)
+            _model     = AutoModelForSequenceClassification.from_pretrained(hf_repo_id)
+            
+        _model.to(_device)
+        _model.eval()
+        
+        _loaded_platform = target_platform
+        _loaded_norm = use_normalization
+        logger.info(f"✅ Model {model_folder} berhasil dimuat ke {_device}")
+        
+    except Exception as e:
+        msg = f"Model {model_folder} gagal dimuat dari lokal maupun Hugging Face: {e}"
         logger.error(msg)
         raise FileNotFoundError(msg)
-
-    _device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    _tokenizer = AutoTokenizer.from_pretrained(str(model_path / "tokenizer"))
-    _model     = AutoModelForSequenceClassification.from_pretrained(str(model_path))
-    _model.to(_device)
-    _model.eval()
-
-    _loaded_platform = target_platform
-    _loaded_norm = use_normalization
-    logger.info(f"✅ Model {model_folder} berhasil dimuat ke {_device}")
 
 
 def predict(raw_text: str, target_platform: str = "tokopedia", use_normalization: bool = True) -> dict:
