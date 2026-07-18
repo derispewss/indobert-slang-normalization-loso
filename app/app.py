@@ -10,7 +10,7 @@ import pandas as pd
 import streamlit as st
 import time
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 # ── Page Config ───────────────────────────────────────────────
@@ -22,7 +22,7 @@ st.set_page_config(
 )
 
 # ── Pengecekan Ketersediaan Model ────────────────────────────
-MODEL_DIR = ROOT / "model"
+MODEL_DIR = ROOT / "models"
 
 def check_model_exists(platform: str, condition: str) -> bool:
     return (MODEL_DIR / f"indobert_{platform}_{condition}").exists()
@@ -98,7 +98,7 @@ st.divider()
 if not model_exists:
     st.warning(
         f"⚠️ **Perhatian**: File bobot untuk eksperimen model **{active_platform.title()}** dengan kondisi **{condition_str.title()}** "
-        f"belum ditemukan di direktori `model/`.  \n\n"
+        f"belum ditemukan di direktori `models/`.  \n\n"
         f"**Solusi**: Silakan jalankan skrip training terlebih dahulu melalui terminal:\n"
         f"`python src/modeling/train_indobert.py --platform {active_platform} --norm {condition_str}`"
     )
